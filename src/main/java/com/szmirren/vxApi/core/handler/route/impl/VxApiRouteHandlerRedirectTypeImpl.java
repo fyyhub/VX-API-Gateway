@@ -9,6 +9,10 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * VxApiRoute页面跳转处理器实现类
  * 
@@ -20,6 +24,9 @@ public class VxApiRouteHandlerRedirectTypeImpl implements VxApiRouteHandlerRedir
 	private boolean isNext;
 	private VxApiServerEntranceRedirectOptions redirectOptions;
 
+	private Integer pos = 0;
+	private List<String> iplist = new ArrayList<>();
+
 	public VxApiRouteHandlerRedirectTypeImpl(boolean isNext, VxApis api) {
 		super();
 		this.isNext = isNext;
@@ -28,11 +35,17 @@ public class VxApiRouteHandlerRedirectTypeImpl implements VxApiRouteHandlerRedir
 		if (redirectOptions == null) {
 			throw new NullPointerException("页面跳转服务类型的配置文件无法装换为服务类");
 		}
+		if(!redirectOptions.getUrl().contains(",")){
+			iplist.add(redirectOptions.getUrl());
+		}else {
+			String [] urls = redirectOptions.getUrl().split(",");
+			iplist.addAll(Arrays.asList(urls));
+		}
 	}
 
 	@Override
 	public void handle(RoutingContext rct) {
-		rct.response().putHeader("Location", redirectOptions.getUrl()).setStatusCode(302);
+		rct.response().putHeader("Location", geturl()).setStatusCode(302);
 		if (isNext) {
 			rct.put(VxApiAfterHandler.PREV_IS_SUCCESS_KEY, Future.<Boolean>succeededFuture(true));// 告诉后置处理器当前操作成功执行
 			rct.next();
@@ -42,6 +55,18 @@ public class VxApiRouteHandlerRedirectTypeImpl implements VxApiRouteHandlerRedir
 			}
 		}
 
+	}
+
+	private String geturl() {
+		String url =null;
+		synchronized (pos){
+			if (pos >= iplist.size()){
+				pos = 0;
+			}
+			url = iplist.get(pos);
+			pos ++;
+		}
+		return url;
 	}
 
 }

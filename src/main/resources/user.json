@@ -1,6 +1,6 @@
 {
-	"VXAdmin": {
-		"pwd": "hivx",
+	"admin": {
+		"pwd": "313231668c",
 		"roles": [
 			"write",
 			"read"
