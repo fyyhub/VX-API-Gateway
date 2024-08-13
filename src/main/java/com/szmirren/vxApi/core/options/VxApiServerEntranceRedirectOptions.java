@@ -2,6 +2,9 @@ package com.szmirren.vxApi.core.options;
 
 import io.vertx.core.json.JsonObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Api服务端处理类型为Redirect
  * 
@@ -11,6 +14,7 @@ import io.vertx.core.json.JsonObject;
 public class VxApiServerEntranceRedirectOptions {
 
 	private String url;// 将要跳转的URL路径
+	private List<VxApiParamOptions> vxApiParamOptionsList;
 
 	/**
 	 * 将对象装换为JsonObject
@@ -35,6 +39,14 @@ public class VxApiServerEntranceRedirectOptions {
 		}
 		VxApiServerEntranceRedirectOptions options = new VxApiServerEntranceRedirectOptions();
 		options.setUrl(obj.getString("url"));
+
+		List<VxApiParamOptions> optionsList = new ArrayList<>();
+		if (obj.getJsonArray("params") != null) {
+			for (int i = 0; i < obj.getJsonArray("params").size(); i++) {
+				optionsList.add(VxApiParamOptions.fromJson(obj.getJsonArray("params").getJsonObject(i)));
+			}
+		}
+		options.setVxApiParamOptionsList(optionsList);
 		return options;
 	}
 
@@ -50,4 +62,11 @@ public class VxApiServerEntranceRedirectOptions {
 		this.url = url;
 	}
 
+	public List<VxApiParamOptions> getVxApiParamOptionsList() {
+		return vxApiParamOptionsList;
+	}
+
+	public void setVxApiParamOptionsList(List<VxApiParamOptions> vxApiParamOptionsList) {
+		this.vxApiParamOptionsList = vxApiParamOptionsList;
+	}
 }

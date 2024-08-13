@@ -2,6 +2,7 @@ package com.szmirren.vxApi.core.handler.route.impl;
 
 import com.szmirren.vxApi.core.entity.VxApis;
 import com.szmirren.vxApi.core.handler.route.VxApiRouteHandlerRedirectType;
+import com.szmirren.vxApi.core.options.VxApiParamOptions;
 import com.szmirren.vxApi.core.options.VxApiServerEntranceRedirectOptions;
 import com.szmirren.vxApi.spi.handler.VxApiAfterHandler;
 
@@ -9,9 +10,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * VxApiRoute页面跳转处理器实现类
@@ -23,6 +22,7 @@ public class VxApiRouteHandlerRedirectTypeImpl implements VxApiRouteHandlerRedir
 
 	private boolean isNext;
 	private VxApiServerEntranceRedirectOptions redirectOptions;
+	private VxApis apis;
 
 	private Integer pos = 0;
 	private List<String> iplist = new ArrayList<>();
@@ -30,6 +30,7 @@ public class VxApiRouteHandlerRedirectTypeImpl implements VxApiRouteHandlerRedir
 	public VxApiRouteHandlerRedirectTypeImpl(boolean isNext, VxApis api) {
 		super();
 		this.isNext = isNext;
+		this.apis = api;
 		JsonObject body = api.getServerEntrance().getBody();
 		redirectOptions = VxApiServerEntranceRedirectOptions.fromJson(body);
 		if (redirectOptions == null) {
@@ -45,7 +46,17 @@ public class VxApiRouteHandlerRedirectTypeImpl implements VxApiRouteHandlerRedir
 
 	@Override
 	public void handle(RoutingContext rct) {
-		rct.response().putHeader("Location", geturl()).setStatusCode(302);
+		String redUrl = geturl();
+		if(apis.isPassBody()){
+			if(redirectOptions.getVxApiParamOptionsList() != null && !redirectOptions.getVxApiParamOptionsList().isEmpty()){
+				Map<String,String> params = new HashMap<>();
+				for(VxApiParamOptions param : redirectOptions.getVxApiParamOptionsList()){
+					params.put(param.getApiParamName(), rct.request().getParam(param.getApiParamName()));
+				}
+				redUrl = redUrl + "?" + VxApiParamOptions.parseParams(params);
+			}
+		}
+		rct.response().putHeader("Location", redUrl).setStatusCode(302);
 		if (isNext) {
 			rct.put(VxApiAfterHandler.PREV_IS_SUCCESS_KEY, Future.<Boolean>succeededFuture(true));// 告诉后置处理器当前操作成功执行
 			rct.next();

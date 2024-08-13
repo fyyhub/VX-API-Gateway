@@ -6,6 +6,8 @@ import com.szmirren.vxApi.core.enums.ParamTypeEnum;
 
 import io.vertx.core.json.JsonObject;
 
+import java.util.Map;
+
 /**
  * 用于映射前后端对应的参数值
  * 
@@ -22,6 +24,14 @@ public class VxApiParamOptions {
 	private Object paramValue;// 参数值
 	private String describe;// 参数描述
 	private int type = 0;// 参数的类型0=前端映射参数,1=系统参数,2=透传参数,9=自定义参数
+
+	public static String parseParams(Map<String, String> params) {
+		StringBuilder sb = new StringBuilder();
+		for (Map.Entry<String, String> entry : params.entrySet()) {
+			sb.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
+		}
+		return sb.toString().substring(0, sb.length() - 1);
+	}
 
 	/**
 	 * 将对象装换为JsonObject
